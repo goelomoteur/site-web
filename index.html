@@ -1,12 +1,54 @@
-<!DOCTYPE html>
-<html lang="fr">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Test Goëlo Moteur</title>
-</head>
-<body style="background:#111; color:white; font-family:Arial; padding:40px;">
-  <h1>Le site fonctionne</h1>
-  <p>Si tu vois ce message, GitHub Pages marche correctement.</p>
-</body>
-</html>
+import os, re
+
+src = "/mnt/data/goelo_moteur_site_single_fixed/index.html"
+dst = "/mnt/data/goelo_moteur_site_single_v2/index.html"
+os.makedirs(os.path.dirname(dst), exist_ok=True)
+
+with open(src, "r", encoding="utf-8") as f:
+    html = f.read()
+
+# Remove "open product" button
+html = re.sub(r'<button class="btn" data-open="[^"]+">.*?</button>', '', html)
+
+# Make image clickable
+html = html.replace(
+    '<div class="product-media"><img',
+    '<div class="product-media" data-open-container><img'
+)
+
+# Wrap image with clickable div (add data-open on parent via JS later)
+html = html.replace(
+    'class="product-media"',
+    'class="product-media" style="cursor:pointer;"'
+)
+
+# Make title clickable
+html = re.sub(
+    r'<h4 class="product-title">(.*?)</h4>',
+    r'<h4 class="product-title" style="cursor:pointer;" data-open-title>\1</h4>',
+    html
+)
+
+# Add JS to handle clicks on image/title
+inject_js = """
+// CLICK ON IMAGE OR TITLE TO OPEN PRODUCT
+document.addEventListener("click", function(e){
+  const card = e.target.closest(".product-card");
+  if(!card) return;
+  const btn = card.querySelector("[data-add]");
+  const openSlug = btn ? btn.getAttribute("data-add") : null;
+  if(!openSlug) return;
+
+  if(e.target.closest(".product-media") || e.target.closest("[data-open-title]")){
+    const p = products.find(x=>x.slug===openSlug);
+    if(p) openProduct(p);
+  }
+});
+"""
+
+html = html.replace("</script>", inject_js + "\n</script>")
+
+with open(dst, "w", encoding="utf-8") as f:
+    f.write(html)
+
+dst
