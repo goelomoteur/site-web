@@ -1,54 +1,132 @@
-import os, re
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<title>Goëlo Moteur</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-src = "/mnt/data/goelo_moteur_site_single_fixed/index.html"
-dst = "/mnt/data/goelo_moteur_site_single_v2/index.html"
-os.makedirs(os.path.dirname(dst), exist_ok=True)
+<style>
+body{
+  margin:0;
+  font-family:Arial;
+  background:#111;
+  color:white;
+}
 
-with open(src, "r", encoding="utf-8") as f:
-    html = f.read()
+header{
+  background:#000;
+  padding:15px;
+  text-align:center;
+  font-size:22px;
+}
 
-# Remove "open product" button
-html = re.sub(r'<button class="btn" data-open="[^"]+">.*?</button>', '', html)
+.container{
+  padding:20px;
+}
 
-# Make image clickable
-html = html.replace(
-    '<div class="product-media"><img',
-    '<div class="product-media" data-open-container><img'
-)
+.products{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(250px,1fr));
+  gap:20px;
+}
 
-# Wrap image with clickable div (add data-open on parent via JS later)
-html = html.replace(
-    'class="product-media"',
-    'class="product-media" style="cursor:pointer;"'
-)
+.card{
+  background:#1a1a1a;
+  border-radius:10px;
+  padding:15px;
+  text-align:center;
+}
 
-# Make title clickable
-html = re.sub(
-    r'<h4 class="product-title">(.*?)</h4>',
-    r'<h4 class="product-title" style="cursor:pointer;" data-open-title>\1</h4>',
-    html
-)
+.card img{
+  width:100%;
+  border-radius:10px;
+  cursor:pointer;
+}
 
-# Add JS to handle clicks on image/title
-inject_js = """
-// CLICK ON IMAGE OR TITLE TO OPEN PRODUCT
-document.addEventListener("click", function(e){
-  const card = e.target.closest(".product-card");
-  if(!card) return;
-  const btn = card.querySelector("[data-add]");
-  const openSlug = btn ? btn.getAttribute("data-add") : null;
-  if(!openSlug) return;
+.card h3{
+  cursor:pointer;
+}
 
-  if(e.target.closest(".product-media") || e.target.closest("[data-open-title]")){
-    const p = products.find(x=>x.slug===openSlug);
-    if(p) openProduct(p);
-  }
-});
-"""
+button{
+  background:red;
+  border:none;
+  padding:10px;
+  color:white;
+  border-radius:5px;
+  cursor:pointer;
+}
 
-html = html.replace("</script>", inject_js + "\n</script>")
+.cart{
+  position:fixed;
+  top:10px;
+  right:10px;
+  background:#000;
+  padding:10px;
+  border-radius:5px;
+}
+</style>
+</head>
 
-with open(dst, "w", encoding="utf-8") as f:
-    f.write(html)
+<body>
 
-dst
+<header>
+Goëlo Moteur
+</header>
+
+<div class="cart">
+Panier : <span id="count">0</span>
+</div>
+
+<div class="container">
+<h2>Nos produits</h2>
+
+<div class="products">
+
+<div class="card">
+<img src="https://via.placeholder.com/300">
+<h3 onclick="openProduct('Couvercle PHBG')">Couvercle PHBG</h3>
+<p>22,5€</p>
+<button onclick="addCart()">Ajouter</button>
+</div>
+
+<div class="card">
+<img src="https://via.placeholder.com/300">
+<h3 onclick="openProduct('Platine Lambretta')">Platine Lambretta</h3>
+<p>26€</p>
+<button onclick="addCart()">Ajouter</button>
+</div>
+
+<div class="card">
+<img src="https://via.placeholder.com/300">
+<h3 onclick="openProduct('Couvercle SHA')">Couvercle SHA</h3>
+<p>22,5€</p>
+<button onclick="addCart()">Ajouter</button>
+</div>
+
+<div class="card">
+<img src="https://via.placeholder.com/300">
+<h3 onclick="openProduct('Cuve SHA')">Cuve SHA</h3>
+<p>26€</p>
+<button onclick="addCart()">Ajouter</button>
+</div>
+
+</div>
+</div>
+
+<script>
+
+let count=0;
+
+function addCart(){
+  count++;
+  document.getElementById("count").innerText=count;
+}
+
+function openProduct(name){
+  alert("Produit : " + name);
+}
+
+</script>
+
+</body>
+</html>
